@@ -24,9 +24,23 @@ namespace MultiplayerSync
         public void Bind(ConfigEntry<T> entry)
         {
             Entry = entry;
-            SyncedEntry = SyncedEntries.RegisterSyncedConfig<T>(entry);
+            SyncedEntry = SyncedEntries.RegisterSyncedConfig(entry);
         }
 
-        public T Value => SyncedEntry.Value;
+        public T Value
+        {
+            get
+            {
+                if (PhotonNetwork.inRoom)
+                {
+                    return SyncedEntry.Value;
+                }
+                else
+                {
+                    return SyncedEntry.MyHostValue;
+                }
+            }
+            set { Entry.Value = value; }
+        }
     }
 }

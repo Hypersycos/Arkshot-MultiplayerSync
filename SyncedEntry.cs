@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using BepInEx;
+using BepInEx.Configuration;
 using ExitGames.Client.Photon;
 using HarmonyLib;
 using System;
@@ -26,14 +27,21 @@ namespace MultiplayerSync
 
         public T Value
         {
-            get => (T)Plugin.hostValues[key];
+            get => SyncedEntries.GetValue<T>(key);
             set => Plugin.myValues[key] = value;
         }
 
-        internal static SyncedEntry<T> NewEntry(T value)
+        public T MyHostValue
         {
-            string id = Plugin.EntryCount.ToString();
+            get => (T)Plugin.myValues[key];
+            set => Plugin.myValues[key] = value;
+        }
+
+        internal static SyncedEntry<T> NewEntry(T value, string key, T defaultValue)
+        {
+            string id = key;
             Plugin.myValues.Add(id, value);
+            Plugin.defaultValues.Add(id, defaultValue);
             return new SyncedEntry<T>(id);
         }
 
@@ -46,14 +54,19 @@ namespace MultiplayerSync
 
     public class SyncedEntries
     { 
-        public static SyncedEntry<T> RegisterSyncedValue<T>(T value)
+        public static SyncedEntry<T> RegisterSyncedValue<T>(T value, T defaultValue, string key, BaseUnityPlugin plugin)
         {
-            return SyncedEntry<T>.NewEntry(value);
+            return SyncedEntry<T>.NewEntry(value, plugin.Info.Metadata.GUID+"."+key, defaultValue);
         }
 
         public static SyncedEntry<T> RegisterSyncedConfig<T>(ConfigEntry<T> configEntry)
         {
-            SyncedEntry<T> toReturn = SyncedEntry<T>.NewEntry(configEntry.Value);
+            var GUIDField = configEntry.ConfigFile.GetType().GetField("_ownerMetadata", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            string GUID = ((BepInPlugin)GUIDField.GetValue(configEntry.ConfigFile)).GUID;
+            string key = GUID + "." + configEntry.Definition.Key;
+            T defaultValue = (T)configEntry.DefaultValue;
+
+            SyncedEntry<T> toReturn = SyncedEntry<T>.NewEntry(configEntry.Value, key, defaultValue);
             configEntry.SettingChanged += (_, _) => toReturn.Value = configEntry.Value;
             return toReturn;
         }
@@ -61,15 +74,13 @@ namespace MultiplayerSync
         public static T GetValue<T>(string property)
         {
             object value = null;
-            Plugin.hostValues.TryGetValue(property, out value);
-            if (value == null)
+            if (Plugin.hostValues.TryGetValue(property, out value))
             {
-                Plugin.logger.LogInfo("Failed to get " + property);
-                return (T)Plugin.myValues[property];
+                return (T)value;
             }
             else
             {
-                return (T)value;
+                return (T)Plugin.defaultValues[property];
             }
         }
 

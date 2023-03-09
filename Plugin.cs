@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using ExitGames.Client.Photon;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -16,8 +17,8 @@ namespace MultiplayerSync
         public static ManualLogSource logger => Instance.Logger;
         internal static Dictionary<string, object> myValues = new();
         internal static Dictionary<string, object> hostValues = new();
-        private static int entryCount = 0;
-        internal static int EntryCount => entryCount++;
+        internal static Dictionary<string, object> defaultValues = new();
+        public static event Action OnJoin;
         private void Awake()
         {
             // Plugin startup logic
@@ -88,6 +89,7 @@ namespace MultiplayerSync
                 if (!PhotonNetwork.isMasterClient)
                 {
                     Tools.SyncProperties(PhotonNetwork.room.customProperties);
+                    OnJoin?.Invoke();
                 }
             }
         }
