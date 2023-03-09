@@ -43,9 +43,13 @@ namespace MultiplayerSync
             public static void SyncProperties(Hashtable roomProperties)
             {
                 hostValues = new();
+                List<string> defaultKeys = new() { "curScn", "jn", "gm" };
                 foreach (var pair in roomProperties)
                 {
-                    hostValues.Add(pair.Key.ToString(), pair.Value);
+                    if (!defaultKeys.Contains(pair.Key.ToString()))
+                    {
+                        hostValues.Add(pair.Key.ToString(), pair.Value);
+                    }
                 }
             }
         }
@@ -82,7 +86,7 @@ namespace MultiplayerSync
                 }
             }
 
-            [HarmonyPatch(typeof(menuScript), "Join")]
+            [HarmonyPatch(typeof(menuScript), "Start")]
             [HarmonyPrefix]
             static void onJoinedRoom_Prefix()
             {
