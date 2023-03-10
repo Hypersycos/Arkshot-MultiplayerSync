@@ -22,26 +22,25 @@ namespace MultiplayerSync
 
         ~SyncedEntry()
         {
-            Plugin.myValues.Remove(key);
+            MultiplayerSync.myValues.Remove(key);
         }
 
         public T Value
         {
             get => SyncedEntries.GetValue<T>(key);
-            set => Plugin.myValues[key] = value;
         }
 
         public T MyHostValue
         {
-            get => (T)Plugin.myValues[key];
-            set => Plugin.myValues[key] = value;
+            get => (T)MultiplayerSync.myValues[key];
+            set => MultiplayerSync.myValues[key] = value;
         }
 
         internal static SyncedEntry<T> NewEntry(T value, string key, T defaultValue)
         {
             string id = key;
-            Plugin.myValues.Add(id, value);
-            Plugin.defaultValues.Add(id, defaultValue);
+            MultiplayerSync.myValues.Add(id, value);
+            MultiplayerSync.defaultValues.Add(id, defaultValue);
             return new SyncedEntry<T>(id);
         }
 
@@ -67,20 +66,20 @@ namespace MultiplayerSync
             T defaultValue = (T)configEntry.DefaultValue;
 
             SyncedEntry<T> toReturn = SyncedEntry<T>.NewEntry(configEntry.Value, key, defaultValue);
-            configEntry.SettingChanged += (_, _) => toReturn.Value = configEntry.Value;
+            configEntry.SettingChanged += (_, _) => toReturn.MyHostValue = configEntry.Value;
             return toReturn;
         }
 
         public static T GetValue<T>(string property)
         {
             object value = null;
-            if (Plugin.hostValues.TryGetValue(property, out value))
+            if (MultiplayerSync.hostValues.TryGetValue(property, out value))
             {
                 return (T)value;
             }
             else
             {
-                return (T)Plugin.defaultValues[property];
+                return (T)MultiplayerSync.defaultValues[property];
             }
         }
 
