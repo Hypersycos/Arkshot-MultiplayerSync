@@ -10,7 +10,8 @@ using System.Text;
 
 namespace MultiplayerSync
 {
-    [BepInPlugin("hypersycos.plugins.arkshot.multiplayersync", "Multiplayer Sync", "1.0.0")]
+    [BepInPlugin("hypersycos.plugins.arkshot.multiplayersync", "Multiplayer Sync", "1.0.1")]
+    [BepInProcess("Arkshot.exe")]
     public class MultiplayerSync : BaseUnityPlugin
     {
         internal static MultiplayerSync Instance;
