@@ -6,9 +6,19 @@ using System.Text;
 
 namespace MultiplayerSync
 {
+    /// <summary>
+    /// A wrapper around a <see cref="ConfigEntry{T}"/>, allowing easy syncing
+    /// </summary>
+    /// <typeparam name="T">The ConfigEntry's type</typeparam>
     public class SyncedConfigEntry<T>
     {
-        public ConfigEntry<T> Entry;
+        /// <summary>
+        /// The wrapped <see cref="ConfigEntry{T}"/>
+        /// </summary>
+        public ConfigEntry<T> ConfigEntry;
+        /// <summary>
+        /// The wrapped <see cref="SyncedEntry{T}"/>
+        /// </summary>
         public SyncedEntry<T> SyncedEntry;
 
         public SyncedConfigEntry(ConfigEntry<T> entry)
@@ -16,17 +26,28 @@ namespace MultiplayerSync
             Bind(entry);
         }
 
+        /// <summary>
+        /// A default constructor to facilitate easy replacement of ConfigEntries. Make sure to call Bind before use.
+        /// </summary>
         public SyncedConfigEntry()
         {
 
         }
 
+        /// <summary>
+        /// Binds the SyncedConfigEntry to a ConfigEntry, creating a SyncedEntry for it.
+        /// </summary>
         public void Bind(ConfigEntry<T> entry)
         {
-            Entry = entry;
+            ConfigEntry = entry;
             SyncedEntry = SyncedEntries.RegisterSyncedConfig(entry);
         }
 
+        /// <summary>
+        /// Used as a drop-in replacement for <see cref="ConfigEntry.Value"/>
+        /// Gets the synced/host value when in a room, otherwise the configured value
+        /// Sets the ConfigEntry's value
+        /// </summary>
         public T Value
         {
             get
@@ -40,7 +61,7 @@ namespace MultiplayerSync
                     return SyncedEntry.MyHostValue;
                 }
             }
-            set { Entry.Value = value; }
+            set { ConfigEntry.Value = value; }
         }
     }
 }
